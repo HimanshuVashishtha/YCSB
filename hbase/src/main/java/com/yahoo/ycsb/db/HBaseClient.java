@@ -32,7 +32,6 @@ import java.util.*;
 
 import com.yahoo.ycsb.measurements.Measurements;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.HTable;
 //import org.apache.hadoop.hbase.client.Scanner;
 import org.apache.hadoop.hbase.client.Get;
@@ -44,6 +43,7 @@ import org.apache.hadoop.hbase.client.ResultScanner;
 //import org.apache.hadoop.hbase.io.Cell;
 //import org.apache.hadoop.hbase.io.RowResult;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 
 /**
@@ -51,7 +51,6 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
  */
 public class HBaseClient extends com.yahoo.ycsb.DB
 {
-    // BFC: Change to fix broken build (with HBase 0.20.6)
     //private static final Configuration config = HBaseConfiguration.create();
     private static final Configuration config = HBaseConfiguration.create(); //new HBaseConfiguration();
 
@@ -178,16 +177,14 @@ public class HBaseClient extends com.yahoo.ycsb.DB
             return ServerError;
         }
 
-  for (KeyValue kv : r.raw()) {
-    result.put(
-        Bytes.toString(kv.getQualifier()),
-        new ByteArrayByteIterator(kv.getValue()));
-    if (_debug) {
-      System.out.println("Result for field: "+Bytes.toString(kv.getQualifier())+
-          " is: "+Bytes.toString(kv.getValue()));
+    for (Cell c : r.rawCells()) {
+      result.put(Bytes.toString(c.getQualifierArray()),
+        new ByteArrayByteIterator(c.getValueArray()));
+      if (_debug) {
+        System.out.println("Result for field: " + Bytes.toString(c.getQualifierArray()) + " is: "
+            + Bytes.toString(c.getValueArray()));
+      }
     }
-
-  }
     return Ok;
     }
 
@@ -251,11 +248,9 @@ public class HBaseClient extends com.yahoo.ycsb.DB
                 }
 
                 HashMap<String,ByteIterator> rowResult = new HashMap<String, ByteIterator>();
-
-                for (KeyValue kv : rr.raw()) {
-                  rowResult.put(
-                      Bytes.toString(kv.getQualifier()),
-                      new ByteArrayByteIterator(kv.getValue()));
+                for (Cell c : rr.rawCells()) {
+                  rowResult.put(Bytes.toString(c.getQualifierArray()),
+                    new ByteArrayByteIterator(c.getValueArray()));
                 }
                 //add rowResult to result vector
                 result.add(rowResult);
@@ -314,6 +309,7 @@ public class HBaseClient extends com.yahoo.ycsb.DB
             System.out.println("Setting up put for key: "+key);
         }
         Put p = new Put(Bytes.toBytes(key));
+        p.setWriteToWAL(false);
         for (Map.Entry<String, ByteIterator> entry : values.entrySet())
         {
             if (_debug) {
@@ -386,6 +382,7 @@ public class HBaseClient extends com.yahoo.ycsb.DB
         }
 
         Delete d = new Delete(Bytes.toBytes(key));
+        d.setWriteToWAL(false);
         try
         {
             _hTable.delete(d);
