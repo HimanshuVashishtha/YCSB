@@ -327,32 +327,16 @@ public class HBaseClientForMultiCFs extends com.yahoo.ycsb.DB
             System.out.println("Setting up put for key: "+key);
         }
         Put p = new Put(Bytes.toBytes(key));
-        if(count_c >= 20){
-          System.out.printf("Before resetting...A: %d, B: %d, C: %d", count_a, count_b, count_c);
-          count_a = count_b = count_c = 0;
-        }
-        
-        if( count_a <=0 ) {
-          cf = "a".getBytes();
-          count_a++;
-        }
-        else if (count_b <= 9) {
-          cf = "b".getBytes();
-          count_b ++;
-        }
-        else
-        {
-          cf = "c".getBytes();
-          count_c ++;
-        }
-        
+        columnFamilies.get(0);
+        int i = 0, CFLength = columnFamilies.size();
         for (Map.Entry<String, ByteIterator> entry : values.entrySet())
         {
             if (_debug) {
                 System.out.println("Adding field/value " + entry.getKey() + "/"+
                   entry.getValue() + " to put request");
             }
-            p.add(cf,Bytes.toBytes(entry.getKey()),entry.getValue().toArray());
+            p.add(Bytes.toBytes(columnFamilies.get(i++ % CFLength)),
+              Bytes.toBytes(entry.getKey()),entry.getValue().toArray());
         }
 
         try
