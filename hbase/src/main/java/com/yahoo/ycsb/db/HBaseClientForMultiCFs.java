@@ -168,14 +168,8 @@ public class HBaseClientForMultiCFs extends com.yahoo.ycsb.DB
         }
             Get g = new Get(Bytes.toBytes(key));
       for (String cf : columnFamilies) {
-        if (fields == null) {
-          g.addFamily(cf.getBytes());
-        } else {
-          for (String field : fields) {
-            g.addColumn(cf.getBytes(), Bytes.toBytes(field));
-          }
-        }
-            }
+        g.addFamily(cf.getBytes());
+      }
             r = _hTable.get(g);
         }
         catch (IOException e)
@@ -236,17 +230,7 @@ public class HBaseClientForMultiCFs extends com.yahoo.ycsb.DB
 
         //add specified fields or else all fields
         for (String cf : columnFamilies){
-        if (fields == null)
-        {
-            s.addFamily(cf.getBytes());
-        }
-        else
-        {
-            for (String field : fields)
-            {
-                s.addColumn(cf.getBytes(),Bytes.toBytes(field));
-            }
-        }
+          s.addFamily(cf.getBytes());
         }
 
         //get results
