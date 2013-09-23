@@ -157,14 +157,16 @@ public class HBaseClient extends com.yahoo.ycsb.DB
         System.out.println("Doing read for key: "+key);
         }
             Get g = new Get(Bytes.toBytes(key));
-          if (fields == null) {
+            g.addFamily(_columnFamilyBytes);
+
+/*          if (fields == null) {
             g.addFamily(_columnFamilyBytes);
           } else {
             for (String field : fields) {
               g.addColumn(_columnFamilyBytes, Bytes.toBytes(field));
             }
           }
-            r = _hTable.get(g);
+*/            r = _hTable.get(g);
         }
         catch (IOException e)
         {
@@ -219,9 +221,10 @@ public class HBaseClient extends com.yahoo.ycsb.DB
         //HBase has no record limit.  Here, assume recordcount is small enough to bring back in one call.
         //We get back recordcount records
         s.setCaching(recordcount);
+        s.addFamily(_columnFamilyBytes);
 
         //add specified fields or else all fields
-        if (fields == null)
+/*        if (fields == null)
         {
             s.addFamily(_columnFamilyBytes);
         }
@@ -232,7 +235,7 @@ public class HBaseClient extends com.yahoo.ycsb.DB
                 s.addColumn(_columnFamilyBytes,Bytes.toBytes(field));
             }
         }
-
+*/
         //get results
         ResultScanner scanner = null;
         try {
